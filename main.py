@@ -59,10 +59,6 @@ def build_gui(typo):
 
     return window
 
-def build_confirm():
-    window_close = pg.Window('Confirm', layout=[[pg.Button(button_text='Stop', key='btn_stop')]], margins=(30,30)).read()
-    return window_close
-
 def catch_spelling_error(text_in):
     for s in list:
         if s == text_in:
@@ -99,20 +95,17 @@ if __name__ == '__main__':
         print(event)
         if event == 'btn_start':
             print(threading.enumerate())
-            print(event)
-            if catch_spelling_error(win32gui.FindWindowEx(0, 0, 0, value['application_name_new'])):
+            print(value['application_name_new'])
+            if catch_spelling_error(value['application_name_new']):
                 threading.Thread(target=btn_start, args=(e,)).start()
                 break
             else:
+                window.close()
                 window = build_gui(True)
+    window.close()
+    window = build_gui(False)
     while True:
-        if event == 'btn_stop':
-            e.set()
-            stop = True
-            sys.exit()
-    window_end = build_confirm()
-    while True:
-        event, value = window_end
+        event, value = window
         if event == 'btn_stop':
             e.set()
             stop = True
