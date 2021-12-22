@@ -8,6 +8,8 @@ import time
 import win32gui
 import sys
 
+from PySimpleGUI import WIN_CLOSED
+
 instructions = '1. Enter the name of the window you wish to switch to from the taskbar or select it from the list on the right: the neccessary input for the' \
                ' given example would be \'Google Chrome - Neuer Tab\'.\n' \
                '2. Enter the name of the window to switch back to (optional).\n' \
@@ -30,7 +32,7 @@ print(win32gui.EnumWindows(winEnumHandler, None))
 
 def build_gui(typo):
     if typo:
-        window = pg.Window('App', layout=[[pg.Text('Instructions', size=(120,1))], [pg.Text('Typo in Application Name!', text_color='red')], [pg.Text(instructions, size=(120,6))],[pg.Text('Insert New Application Name: ', size=(25, 1)),
+        window = pg.Window('App', layout=[[pg.Text('Instructions', size=(120,1))], [pg.Text('Typo in Application Name!', key='typo', text_color='red')], [pg.Text(instructions, size=(120,6))],[pg.Text('Insert New Application Name: ', size=(25, 1)),
                                            pg.In(size=(25, 1), default_text='Neuer Tab - Google Chrome',
                                                  key='application_name_new'), pg.Image('Example_Name.PNG'),
                                            pg.Text('(Example)'), pg.Listbox(list, size=(30, 6))],
@@ -40,7 +42,7 @@ def build_gui(typo):
                                            pg.In(size=(25, 1), default_text='5', key='duration')],
                                           [pg.Button(button_text='Start', key='btn_start', size=(10, 0), button_color='green'),
                                             [pg.Text('', size=(10, 0))],
-                                           [pg.Button(button_text='Stop', key='btn_stop', size=(10,0), button_color='red')]]], margins=(0, 0)).read()
+                                           [pg.Button(button_text='Stop', key='btn_stop', size=(10,0), button_color='red')]]], margins=(0, 0))
     else:
         window = pg.Window('App',
                            layout=[[pg.Text('Instructions', size=(120, 1))], [pg.Text(instructions, size=(120, 6))],
@@ -55,7 +57,7 @@ def build_gui(typo):
                                    [pg.Button(button_text='Start', key='btn_start', size=(10, 0), button_color='green'),
                                     pg.Text('', size=(10, 0)),
                                     pg.Button(button_text='Stop', key='btn_stop', size=(10, 0), button_color='red')]],
-                           margins=(0, 0)).read()
+                           margins=(0, 0))
 
     return window
 
@@ -91,22 +93,15 @@ if __name__ == '__main__':
     e = threading.Event()
     window = build_gui(False)
     while True:
-        event, value = window
+        event, value = window.read()
         print(event)
         if event == 'btn_start':
             print(threading.enumerate())
             print(value['application_name_new'])
             if catch_spelling_error(value['application_name_new']):
                 threading.Thread(target=btn_start, args=(e,)).start()
-                break
-            else:
-                window.close()
-                window = build_gui(True)
-    window.close()
-    window = build_gui(False)
-    while True:
-        event, value = window
-        if event == 'btn_stop':
+                window.refresh()
+        if event == 'btn_stop' or event == WIN_CLOSED:
             e.set()
             stop = True
             sys.exit()
